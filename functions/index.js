@@ -19,18 +19,17 @@ firebase.initializeApp(firebaseConfig);
 const db = admin.firestore();
 const app = express();
 
-app.get("/", (req, res) => {
-  db.collection("students")
-    .orderBy("name", "desc")
+app.get("/allbooks", (req, res) => {
+  db.collection("books")
+    .orderBy("date", "desc")
     .get()
     .then(snapshort => {
       var data = [];
       snapshort.forEach(snap => {
         data.push({
-          id: snap.id,
-          name: snap.data().name,
-          branch: snap.data().branch,
-          sem: snap.data().sem,
+          username: snap.data().username,
+          forsem: snap.data().forsem,
+          bookname: snap.data().bookname,
           date: snap.data().date
         });
       });
@@ -39,21 +38,50 @@ app.get("/", (req, res) => {
     .catch(error => console.log(error));
 });
 
-app.post("/students", (req, res) => {
-  const newstudent = {
-    name: req.body.name,
-    branch: req.body.branch,
-    sem: req.body.sem,
-    date: admin.firestore.Timestamp.fromDate(new Date())
+const FBauth = (req,res,next) =>{
+  let idToken;
+  if(req.headers.authorization && req.headers.authorization.startsWith('Bearer ')){
+    idToken = req.headers.authorization.split('Bearer ')[1];
+  }
+  else{
+    return res.json({error:"unauthorised access"})
+  }
+  admin.auth().verifyIdToken(idToken)
+  .then(decodedToken=>{
+    req.user=decodedToken;
+    console.log(decodedToken);
+    return db.collection('users')
+    .where('userId','==',req.user.uid)
+    .limit(1)
+    .get();
+  })
+  .then(data =>{
+    req.user.handle = data.docs[0].data().username;
+    return next();
+  })
+  .catch(error=>{
+    console.log(error);
+    return res.json({error:error.code})
+  })
+}
+
+app.post("/addbook",FBauth, (req, res) => {
+  const newbook = {
+    username: req.user.handle,
+    forsem: req.body.whichsem,
+    bookname:req.body.bookname,
+    // date: admin.firestore.Timestamp.fromDate(new Date())
+    date: new Date().toISOString()
   };
-  db.collection("students")
-    .add(newstudent)
+  db.collection("books")
+    .add(newbook)
     .then(dat => {
       return res.json({ message: `documeny id ${dat.id} successful` });
     })
     .catch(error => {
-      res.status(500).json({ error: "error" });
       console.log(error);
+      return res.status(500).json({ error: error.code });
+      
     });
 });
 
@@ -69,7 +97,7 @@ const empty = string => {
 };
 
 app.post("/signup", (req, res) => {
-  const newUser = { 
+  const newUser = {
     email: req.body.email,
     passwd: req.body.passwd,
     confPasswd: req.body.confPasswd,
@@ -79,15 +107,16 @@ app.post("/signup", (req, res) => {
   let error = {};
 
   if (empty(newUser.email)) error.email = "Must not be empty";
-  else if (!(isEmail(newUser.email))) error.email = "must be a valid email ";
+  else if (!isEmail(newUser.email)) error.email = "must be a valid email ";
   if (empty(newUser.passwd)) error.passwd = "Must not be empty";
   if (newUser.passwd !== newUser.confPasswd) error.confpasswd = "Passwd do not match";
   if (empty(newUser.handle)) error.handle = "Must not be empty";
 
   if (Object.keys(error).length > 0) return res.json(error);
 
-  let userid, token;
-  db.doc(`/user/${newUser.handle}`)
+  let userId; 
+  let token;
+  db.doc(`/users/${newUser.handle}`)
     .get()
     .then(doc => {
       if (doc.exists) {
@@ -99,7 +128,7 @@ app.post("/signup", (req, res) => {
       }
     })
     .then(data => {
-      userid = data.user.uid;
+      userId = data.user.uid;
       return data.user.getIdToken();
     })
     .then(idtoken => {
@@ -107,9 +136,9 @@ app.post("/signup", (req, res) => {
       const userdetails = {
         username: newUser.handle,
         date: new Date().toISOString(),
-        userid
+        userId
       };
-      return db.doc(`/user/${userdetails.username}`).set(userdetails);
+      return db.doc(`/users/${userdetails.username}`).set(userdetails);
     })
     .then(() => {
       return res.json({ note: `user registerd successfully ${token}` });
@@ -118,7 +147,6 @@ app.post("/signup", (req, res) => {
       console.log(err);
       return res.json({ error: err.code });
     });
-
 });
 
 //login
@@ -131,7 +159,7 @@ app.post('/login',(req,res)=>{
         passwd:req.body.passwd,
     }
     if (empty(loginDetails.username)) error.email = "Must not be empty";
-    else if (!isEmail(loginDetails.username)) error.email = "must be a valid email ";
+    else if (!isEmail(loginDetails.username)) error.email = "must be a valid email";
     if (empty(loginDetails.passwd)) error.passwd = "Must not be empty";
 
     if (Object.keys(errors).length>0) return res.json(errors);
@@ -141,11 +169,19 @@ app.post('/login',(req,res)=>{
         return data.user.getIdToken();
     })
     .then(token=>{
-        return res.json({status:signed in sussfully })
+        return res.json({status:`signed in sussfully ${token}` })
     })
     .catch(error =>{
-        console.error(error)
-        return res.json({error:errors.code})
+        console.error(error);
+        if(error.code === 'auth/user-not-found'){
+          return res.json({Error: "Invalid user"})
+        }
+        else if(error.code === 'auth/wrong-password'){
+          return res.json({Error:"Wrong password "})
+        }
+        else{
+          return res.json({error:error.code})
+        }
     })
 
 })
