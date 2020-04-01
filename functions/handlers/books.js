@@ -3,7 +3,9 @@ const BusBoy = require("busboy");
 const os = require("os");
 const fs = require('fs');
 const path = require("path");
+const {config } = require('../util/config');
 
+let imgurl='';
 
 exports.getAllBooks = (req, res) => {
   db.collection("books")
@@ -25,45 +27,15 @@ exports.getAllBooks = (req, res) => {
 };
 
 exports.addBooks = (req, res) => {
-
-  busboy = new BusBoy({headers : req.headers})
-  let imgName;
-  let imgTobeUploaded ={};
-
-  busboy.on('file',(fieldname,file,filename,encoding,MimeType)=>{
-    
-    const imgExtension = filename.split('.')[filename.split('.').length -  1];
-    imgName =`${Math.round(Math.random()*1000000000000)}.${imgExtension}`;
-    const filepath = path.join(os.tmpdir(),imgName);
-    imgTobeUploaded = { filepath , MimeType};
-    file.pipe(fs.createWriteStream(filepath)); 
-  });
-  busboy.on('finish' ,()=>{
-     admin.storage().bucket().upload(imgTobeUploaded.filepath,{
-        resumable:false,
-        metadata:{
-          metadata:{
-            contentType: imgTobeUploaded.MimeType,
-          }
-        }
-      })
-      .then(()=>{
-        return res.json({status:"uploaded successfully"})
-      })
-      .catch(error =>{
-        console.log(error)
-        return res.json({error:error});
-      })
-  })
-  busboy.end(req.rawBody);
-
   const newbook = {
     username: req.user.handle,
     forsem: req.body.whichsem,
     bookname: req.body.bookname,
+    imgURL:imgurl,
     // date: admin.firestore.Timestamp.fromDate(new Date())
     date: new Date().toISOString()
   };
+  imgurl='';
   db.collection("books")
     .add(newbook)
     .then(dat => {
@@ -98,7 +70,8 @@ exports.addimg = (req,res) =>{
         }
       })
       .then(()=>{
-        return res.json({status:"uploaded successfully"})
+        imgurl=`https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imgName}?alt=media`;
+        return res.json({status:`uploaded successfully ${imgurl}` })
       })
       .catch(error =>{
         console.log(error)
