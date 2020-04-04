@@ -18,7 +18,14 @@ exports.getAllBooks = (req, res) => {
           username: snap.data().username,
           forsem: snap.data().forsem,
           bookname: snap.data().bookname,
-          date: snap.data().date
+          date: snap.data().date,
+          imgURL:snap.data().imgURL,
+          phoneNo:snap.data().phoneNo,
+          status:snap.data().status,
+          price:snap.data().price,
+          bookId:snap.data().bookId,
+          branch:snap.data().branch
+
         });
       });
       return res.send(data);
@@ -39,7 +46,11 @@ exports.addBooks = (req, res) => {
   db.collection("books")
     .add(newbook)
     .then(dat => {
-      return res.json({ message: `documeny id ${dat.id} successful` });
+      // return res.json({ message: `documeny id ${dat.id} successful` });
+      return db.doc(`/books/${dat.id}`).update({bookId:dat.id})
+    })
+    .then(() =>{
+      return res.json({status:'book added successfully'});
     })
     .catch(error => {
       console.log(error);
