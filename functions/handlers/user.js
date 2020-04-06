@@ -67,16 +67,16 @@ exports.login = (req, res) => {
       return data.user.getIdToken();
     })
     .then(token => {
-      return res.json({ status: `signed in sussfully ${token}` });
+      return res.json({ token: `${token}` });
     })
     .catch(error => {
       console.error(error);
       if (error.code === "auth/user-not-found") {
-        return res.json({ Error: "Invalid user" });
+        return res.status(400).json({ Error: "Invalid user" });
       } else if (error.code === "auth/wrong-password") {
-        return res.json({ Error: "Wrong password " });
+        return res.status(400).json({ Error: "Wrong password " });
       } else {
-        return res.json({ error: error.code });
+        return res.status(400).json({ error: error.code });
       }
     });
 };
