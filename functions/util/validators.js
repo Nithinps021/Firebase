@@ -16,6 +16,9 @@ exports.validateSignupData = (newUser) => {
   if (empty(newUser.passwd)) errors.passwd = "Must not be empty";
   if (newUser.passwd !== newUser.confPasswd) errors.confpasswd = "Passwd do not match";
   if (empty(newUser.handle)) errors.handle = "Must not be empty";
+  if (empty(newUser.branch)) errors.branch = "Must not be empty";
+  if (empty(newUser.phoneNo)) errors.phoneNo = "Must not be empty";
+  if (empty(newUser.sem)) errors.sem = "Must not be empty";
 
   return {
     errors,

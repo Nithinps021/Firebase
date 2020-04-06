@@ -10,7 +10,11 @@ exports.signup = (req, res) => {
     email: req.body.email,
     passwd: req.body.passwd,
     confPasswd: req.body.confPasswd,
-    handle: req.body.handle
+    handle: req.body.handle,
+    branch:req.body.branch,
+    phoneNo:req.body.phoneNo,
+    sem:req.body.sem,
+    imageURL:`https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/no-img.png?alt=media`
   };
   const {errors,valid} = validateSignupData(newUser)
   if(!valid) return res.status(400).json(errors)
@@ -37,18 +41,27 @@ exports.signup = (req, res) => {
       const userdetails = {
         username: newUser.handle,
         date: new Date().toISOString(),
-        userId
+        userId,
+        phoneNo:newUser.phoneNo,
+        branch:newUser.branch,
+        sem:newUser.sem,
+        imageURL:newUser.imageURL
       };
       return db.doc(`/users/${userdetails.username}`).set(userdetails);
     })
     .then(() => {
-      return res.json({ note: `user registerd successfully ${token}` });
+      return res.json({ token: `${token}` });
     })
     .catch(err => {
       console.log(err);
-      return res.json({ error: err.code });
+      if(err.code === 'auth/email-already-in-use'){
+        res.status(400).json({email:'The email address is already in use by another account.'})
+      }
+      return res.status(400).json({ error: err.code });
     });
 };
+
+
 
 exports.login = (req, res) => {
   const loginDetails = {
