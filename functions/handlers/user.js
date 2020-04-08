@@ -1,7 +1,7 @@
 const { db } = require("../util/admin");
 const firebase = require('firebase');
 const {config} = require('../util/config');
-const {validateSignupData,validateLoginData} = require('../util/validators');
+const {validateSignupData,validateLoginData,validateUpdateInfo} = require('../util/validators');
 
 firebase.initializeApp(config);
 
@@ -61,15 +61,13 @@ exports.signup = (req, res) => {
     });
 };
 
-
-
 exports.login = (req, res) => {
   const loginDetails = {
     username: req.body.Email,
     passwd: req.body.passwd
   };
 
-  const { errors,valid} = validateLoginData(loginDetails)
+  const {errors,valid} = validateLoginData(loginDetails)
 
   if(!valid) return res.status(400).json(errors);
  
@@ -93,3 +91,29 @@ exports.login = (req, res) => {
       }
     });
 };
+
+exports.updateInfo = (req,res) => {
+
+  let { errors , valid} = validateUpdateInfo(req.body)
+  if(!valid) return res.status(400).json(errors);
+
+  db.doc(`/users/${req.user.handle}`).update(req.body)
+  .then(() =>{
+    return res.json({message:'The details updated Successfully'})
+  })
+  .catch(error =>{
+    console.error(error)
+    return res.status(500).json({error:error.code})
+  })
+}
+
+exports.userInfo = (req,res) =>{
+  db.doc(`/users/${req.user.handle}`).get()
+  .then(info => {
+    return res.status(200).json(info.data())
+  })
+  .catch(error =>{
+    console.error(error)
+    return res.status(400).json({error:error.code})
+  })
+}

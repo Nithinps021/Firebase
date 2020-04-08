@@ -8,6 +8,11 @@ const empty = string => {
   else return false;
 };
 
+const numberCheck = string =>{
+  if(String(string).trim().length < 10) return true;
+  else return false;
+}
+
 exports.validateSignupData = (newUser) => {
   let errors = {};
 
@@ -17,7 +22,7 @@ exports.validateSignupData = (newUser) => {
   if (newUser.passwd !== newUser.confPasswd) errors.confpasswd = "Passwd do not match";
   if (empty(newUser.handle)) errors.handle = "Must not be empty";
   if (empty(newUser.branch)) errors.branch = "Must not be empty";
-  if (empty(newUser.phoneNo)) errors.phoneNo = "Must not be empty";
+  if (numberCheck(newUser.phoneNo)) errors.phoneNo = "Must be valid number";
   if (empty(newUser.sem)) errors.sem = "Must not be empty";
 
   return {
@@ -35,4 +40,14 @@ exports.validateLoginData = (loginDetails)=>{
         errors,
         valid:(Object.keys(errors).length === 0)?true:false
     }
+}
+exports.validateUpdateInfo =(updateData) =>{
+  let errors = {};
+  if (empty(updateData.branch)) errors.branch = "Must not be empty";
+  if (numberCheck(updateData.phoneNo)) errors.phoneNo = "Must be valid number";
+  if (empty(updateData.sem)) errors.sem = "Must not be empty";
+  return {
+    errors,
+    valid: Object.keys(errors).length === 0 ? true : false
+  };
 }
