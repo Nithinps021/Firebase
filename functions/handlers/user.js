@@ -103,7 +103,7 @@ exports.updateInfo = (req,res) => {
   })
   .catch(error =>{
     console.error(error)
-    return res.status(500).json({error:error.code})
+    return res.status(400).json({error:error.code})
   })
 }
 

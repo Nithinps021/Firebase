@@ -38,9 +38,12 @@ exports.addBooks = (req, res) => {
     username: req.user.handle,
     forsem: req.body.whichsem,
     bookname: req.body.bookname,
-    imgURL:imgurl,
-    // date: admin.firestore.Timestamp.fromDate(new Date())
-    date: new Date().toISOString()
+    imgURL:req.body.imgURL,
+    date: new Date().toISOString(),
+    price:req.body.price,
+    branch:req.body.branch,
+    status:req.body.status,
+    phoneNo:req.body.phoneNo
   };
   imgurl='';
   db.collection("books")
@@ -90,4 +93,34 @@ exports.addimg = (req,res) =>{
       })
   })
   busboy.end(req.rawBody);
+}
+
+exports.deleteBook = (req,res) =>{
+  db.doc(`/books/${req.body.bookId}`).delete()
+  .then(() =>{
+    return res.json({info:'The book has been successfully removed'})
+  })
+  .catch(error => {
+    console.error(error)
+    return res.status(400).json({error:error.code})
+  })
+}
+
+exports.updateBook =(req,res) =>{
+
+  const updatedDetails ={
+    forsem:req.body.forsem,
+    bookname:req.body.bookname,
+    imgURL:req.body.imgURL,
+    price:req.body.price,
+    branch:req.body.branch,
+  }
+  db.doc(`/books/${req.body.bookId}`).update(updatedDetails)
+  .then(()=>{
+    return res.json({info:'Book updated successfully'})
+  })
+  .catch(error =>{
+    console.error(error);
+    return res.status(400).json({error:error.code})
+  })
 }
