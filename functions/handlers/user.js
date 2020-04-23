@@ -117,3 +117,14 @@ exports.userInfo = (req,res) =>{
     return res.status(400).json({error:error.code})
   })
 }
+
+exports.updateImg=(req,res)=>{
+  db.doc(`/users/${req.user.handle}`).update(req.body)
+  .then(res=>{
+    return res.json({message:'The image updated Successfully'})
+  })
+  .catch(error =>{
+    console.error(error)
+    return res.status(400).json({error:error.code})
+  })
+}

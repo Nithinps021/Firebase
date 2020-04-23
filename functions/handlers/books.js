@@ -85,7 +85,7 @@ exports.addimg = (req,res) =>{
       })
       .then(()=>{
         imgurl=`https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imgName}?alt=media`;
-        return res.json({status:`uploaded successfully ${imgurl}` })
+        return res.json({status:`${imgurl}` })
       })
       .catch(error =>{
         console.log(error)

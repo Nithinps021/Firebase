@@ -3,7 +3,7 @@ const express = require("express");
 
 const {getAllBooks,addBooks,addimg,deleteBook,updateBook} = require('./handlers/books')
 const {sortBook,usersBook} = require('./handlers/selectbook')
-const {signup,login,updateInfo,userInfo} = require('./handlers/user')
+const {signup,login,updateInfo,userInfo,updateImg} = require('./handlers/user')
 const {FBauth} = require('./util/fbauth')
 
 const app = express();
@@ -18,6 +18,8 @@ app.post("/signup",signup);
 app.post('/login',login);
 app.post('/updateinfo',FBauth,updateInfo);
 app.get('/userinfo',FBauth,userInfo);
+app.get('/updateimg',FBauth,updateImg);
+
 
 // user and book
 app.get('/usersbooks',FBauth,usersBook);
