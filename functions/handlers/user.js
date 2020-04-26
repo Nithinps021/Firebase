@@ -120,7 +120,7 @@ exports.userInfo = (req,res) =>{
 
 exports.updateImg=(req,res)=>{
   db.doc(`/users/${req.user.handle}`).update(req.body)
-  .then(res=>{
+  .then(()=>{
     return res.json({message:'The image updated Successfully'})
   })
   .catch(error =>{

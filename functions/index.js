@@ -18,7 +18,7 @@ app.post("/signup",signup);
 app.post('/login',login);
 app.post('/updateinfo',FBauth,updateInfo);
 app.get('/userinfo',FBauth,userInfo);
-app.get('/updateimg',FBauth,updateImg);
+app.post('/updateimg',FBauth,updateImg);
 
 
 // user and book
