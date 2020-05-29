@@ -1,5 +1,6 @@
 const functions = require("firebase-functions");
 const express = require("express");
+const cors = require('cors');
 
 const {getAllBooks,addBooks,addimg,deleteBook,updateBook} = require('./handlers/books')
 const {sortBook,usersBook} = require('./handlers/selectbook')
@@ -7,6 +8,7 @@ const {signup,login,updateInfo,userInfo,updateImg} = require('./handlers/user')
 const {FBauth} = require('./util/fbauth')
 
 const app = express();
+app.use(cors());
 
 //books route
 app.get("/allbooks",getAllBooks);
